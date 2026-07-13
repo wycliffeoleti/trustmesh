@@ -1,0 +1,8 @@
+test_delete_and_prompt_injection_are_blocked (tests.test_behavior.ControlPlaneBehavior.test_delete_and_prompt_injection_are_blocked) ... ok
+test_safe_task_completes_with_tool_audit (tests.test_behavior.ControlPlaneBehavior.test_safe_task_completes_with_tool_audit) ... ok
+test_sensitive_task_pauses_then_resumes_after_approval (tests.test_behavior.ControlPlaneBehavior.test_sensitive_task_pauses_then_resumes_after_approval) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.005s
+
+OK
