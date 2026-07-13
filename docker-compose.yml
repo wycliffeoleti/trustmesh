@@ -1,0 +1,7 @@
+services:
+  trustmesh:
+    build: .
+    ports: ["8000:8000"]
+    volumes: ["trustmesh-data:/data"]
+volumes:
+  trustmesh-data:

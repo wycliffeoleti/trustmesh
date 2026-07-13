@@ -1,0 +1,23 @@
+version: "2026.1"
+default: deny
+tools:
+  search_knowledge:
+    risk: low
+    outcome: allow
+    scopes: [knowledge.read]
+  get_customer_status:
+    risk: low
+    outcome: allow
+    scopes: [customer.read]
+  send_email:
+    risk: high
+    outcome: require_approval
+    scopes: [communications.send]
+  publish_update:
+    risk: high
+    outcome: require_approval
+    scopes: [communications.publish]
+  delete_customer:
+    risk: critical
+    outcome: deny
+    reason: Destructive customer deletion is not delegated to agents.
