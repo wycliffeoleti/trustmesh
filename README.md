@@ -45,7 +45,7 @@ The domain (`Action`, `Decision`, `PolicyGateway`) is independent of FastAPI and
 
 ## Actual local verification
 
-The checked-in evaluation report is from a local execution: dataset `2026.1`, **4/4 passed (100%)**. Its cases cover safe completion, approval routing, destructive-action denial, and prompt-injection denial. See [eval report](docs/verification/eval-report.json) and [test output](docs/verification/tests.txt). Exact commands: `python3 -m unittest discover -v` and `python3 -m evals.run_eval`.
+The checked-in evaluation report is from a local execution: dataset `2026.1`, **4/4 passed (100%)**. Its cases cover safe completion, approval routing, destructive-action denial, and prompt-injection denial. See [eval report](docs/verification/eval-report.json) and [test output](docs/verification/tests.txt). Exact commands: `uv run pytest -q` and `uv run python evals/run_eval.py`.
 
 ## Security and governance
 
