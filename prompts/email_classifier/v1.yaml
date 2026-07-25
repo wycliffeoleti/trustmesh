@@ -18,3 +18,10 @@ examples:
   - input: "What are your support hours on weekends?"
     category: general
     summary: "Customer is asking about weekend support hours."
+# Deterministic fallback rules used when no example above matches exactly. Categories
+# are checked in this declared order; multi-category text resolves to the first match.
+category_keywords:
+  billing: ["invoice", "charge", "charged", "payment", "refund", "billing", "subscription"]
+  technical: ["crash", "crashes", "bug", "error", "broken", "not working", "install"]
+  account: ["password", "log in", "login", "locked out", "username"]
+default_category: general

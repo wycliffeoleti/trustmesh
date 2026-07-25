@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from trustmesh.email_classifier import PromptConfig, classify_email, load_prompt_config
+from trustmesh.email_classifier import PromptConfig, PromptExample, classify_email, load_prompt_config
 
 ROOT = Path(__file__).resolve().parent.parent
 V1_PROMPT_PATH = ROOT / "prompts" / "email_classifier" / "v1.yaml"
@@ -20,6 +20,12 @@ def make_config() -> PromptConfig:
         "examples": [
             {"input": "example", "category": "general", "summary": "An example email."},
         ],
+        "category_keywords": {
+            "billing": ["invoice", "charge", "charged", "payment", "refund", "billing", "subscription"],
+            "technical": ["crash", "crashes", "bug", "error", "broken", "not working", "install"],
+            "account": ["password", "log in", "login", "locked out", "username"],
+        },
+        "default_category": "general",
     })
 
 
@@ -55,6 +61,111 @@ def test_prompt_config_rejects_empty_examples() -> None:
         PromptConfig.model_validate(payload)
 
 
+def test_prompt_config_rejects_missing_category_keywords() -> None:
+    payload = {
+        "version": "test-1",
+        "created_at": "2026-01-01T00:00:00Z",
+        "system_prompt": "Classify the email.",
+        "examples": [{"input": "hi", "category": "general", "summary": "Hi."}],
+        "default_category": "general",
+    }
+    with pytest.raises(ValidationError):
+        PromptConfig.model_validate(payload)
+
+
+def test_prompt_config_rejects_missing_default_category() -> None:
+    payload = {
+        "version": "test-1",
+        "created_at": "2026-01-01T00:00:00Z",
+        "system_prompt": "Classify the email.",
+        "examples": [{"input": "hi", "category": "general", "summary": "Hi."}],
+        "category_keywords": {"billing": ["invoice"]},
+    }
+    with pytest.raises(ValidationError):
+        PromptConfig.model_validate(payload)
+
+
+def test_prompt_config_rejects_empty_category_keywords() -> None:
+    payload = {
+        "version": "test-1",
+        "created_at": "2026-01-01T00:00:00Z",
+        "system_prompt": "Classify the email.",
+        "examples": [{"input": "hi", "category": "general", "summary": "Hi."}],
+        "category_keywords": {},
+        "default_category": "general",
+    }
+    with pytest.raises(ValidationError):
+        PromptConfig.model_validate(payload)
+
+
+def test_prompt_config_rejects_category_keywords_with_empty_keyword_list() -> None:
+    payload = {
+        "version": "test-1",
+        "created_at": "2026-01-01T00:00:00Z",
+        "system_prompt": "Classify the email.",
+        "examples": [{"input": "hi", "category": "general", "summary": "Hi."}],
+        "category_keywords": {"billing": []},
+        "default_category": "general",
+    }
+    with pytest.raises(ValidationError):
+        PromptConfig.model_validate(payload)
+
+
+def test_prompt_config_rejects_unknown_category_keyword_key() -> None:
+    payload = {
+        "version": "test-1",
+        "created_at": "2026-01-01T00:00:00Z",
+        "system_prompt": "Classify the email.",
+        "examples": [{"input": "hi", "category": "general", "summary": "Hi."}],
+        "category_keywords": {"urgent": ["asap"]},
+        "default_category": "general",
+    }
+    with pytest.raises(ValidationError):
+        PromptConfig.model_validate(payload)
+
+
+def test_prompt_example_rejects_multi_sentence_summary() -> None:
+    payload = {
+        "input": "My invoice is wrong. Please fix it.",
+        "category": "billing",
+        "summary": "The invoice is wrong. Please refund it.",
+    }
+    with pytest.raises(ValidationError):
+        PromptExample.model_validate(payload)
+
+
+def test_prompt_example_rejects_summary_with_trailing_text_after_terminal_punctuation() -> None:
+    payload = {
+        "input": "My invoice is wrong.",
+        "category": "billing",
+        "summary": "The invoice is wrong! thanks",
+    }
+    with pytest.raises(ValidationError):
+        PromptExample.model_validate(payload)
+
+
+def test_prompt_example_accepts_single_sentence_summary_without_terminal_punctuation() -> None:
+    example = PromptExample.model_validate(
+        {"input": "hi", "category": "general", "summary": "Hi there"}
+    )
+    assert example.summary == "Hi there"
+
+
+def test_prompt_config_rejects_multi_sentence_example_summary() -> None:
+    payload = {
+        "version": "test-1",
+        "created_at": "2026-01-01T00:00:00Z",
+        "system_prompt": "Classify the email.",
+        "examples": [
+            {"input": "hi", "category": "general", "summary": "First sentence. Second sentence."},
+        ],
+        "category_keywords": {"billing": ["invoice"]},
+        "default_category": "general",
+    }
+    with pytest.raises(ValidationError):
+        PromptConfig.model_validate(payload)
+
+
 def test_load_prompt_config_reads_yaml_from_disk(tmp_path: Path) -> None:
     yaml_path = tmp_path / "v1.yaml"
     yaml_path.write_text(
@@ -65,6 +176,9 @@ def test_load_prompt_config_reads_yaml_from_disk(tmp_path: Path) -> None:
         "  - input: hi\n"
         "    category: general\n"
         "    summary: Hi there.\n"
+        "category_keywords:\n"
+        "  billing: [invoice]\n"
+        "default_category: general\n"
     )
     config = load_prompt_config(yaml_path)
     assert config.version == "2026.1"
@@ -122,6 +236,8 @@ def test_classify_email_uses_configured_example_to_override_keyword_fallback() -
         "examples": [
             {"input": text, "category": "technical", "summary": "Gizmo transmogrifier needs servicing."},
         ],
+        "category_keywords": {"billing": ["invoice"]},
+        "default_category": "general",
     })
     config_b = PromptConfig.model_validate({
         "version": "test-b",
@@ -130,6 +246,8 @@ def test_classify_email_uses_configured_example_to_override_keyword_fallback() -
         "examples": [
             {"input": text, "category": "billing", "summary": "Gizmo transmogrifier billing issue."},
         ],
+        "category_keywords": {"billing": ["invoice"]},
+        "default_category": "general",
     })
 
     result_a = classify_email(text, config_a)
@@ -139,6 +257,55 @@ def test_classify_email_uses_configured_example_to_override_keyword_fallback() -
     assert result_a.summary == "Gizmo transmogrifier needs servicing."
     assert result_b.category == "billing"
     assert result_b.summary == "Gizmo transmogrifier billing issue."
+
+
+def test_classify_email_category_keywords_change_fallback_classification() -> None:
+    # Non-exact input (no example matches it), so classification is driven purely by
+    # the configured fallback keyword rules. A config-blind implementation would ignore
+    # config.category_keywords and produce the same category regardless of config.
+    text = "Please help, my widget subscription is acting up."
+
+    config_a = PromptConfig.model_validate({
+        "version": "test-d",
+        "created_at": datetime(2026, 1, 1, tzinfo=UTC),
+        "system_prompt": "Classify the email and summarise it in one sentence.",
+        "examples": [{"input": "example", "category": "general", "summary": "An example email."}],
+        "category_keywords": {"billing": ["widget"]},
+        "default_category": "general",
+    })
+    config_b = PromptConfig.model_validate({
+        "version": "test-e",
+        "created_at": datetime(2026, 1, 1, tzinfo=UTC),
+        "system_prompt": "Classify the email and summarise it in one sentence.",
+        "examples": [{"input": "example", "category": "general", "summary": "An example email."}],
+        "category_keywords": {"technical": ["widget"]},
+        "default_category": "general",
+    })
+
+    result_a = classify_email(text, config_a)
+    result_b = classify_email(text, config_b)
+
+    assert result_a.category == "billing"
+    assert result_b.category == "technical"
+
+
+def test_classify_email_default_category_is_configurable() -> None:
+    # No example matches and no keyword matches, so the configured default_category
+    # must be used verbatim rather than a code-level "general" fallback.
+    text = "Just saying hello, nothing specific."
+
+    config = PromptConfig.model_validate({
+        "version": "test-f",
+        "created_at": datetime(2026, 1, 1, tzinfo=UTC),
+        "system_prompt": "Classify the email and summarise it in one sentence.",
+        "examples": [{"input": "example", "category": "general", "summary": "An example email."}],
+        "category_keywords": {"billing": ["invoice"]},
+        "default_category": "account",
+    })
+
+    result = classify_email(text, config)
+
+    assert result.category == "account"
 
 
 def test_classify_email_exact_configured_example_wins_over_multi_category_keyword_match() -> None:
@@ -155,6 +322,8 @@ def test_classify_email_exact_configured_example_wins_over_multi_category_keywor
         "examples": [
             {"input": text, "category": "technical", "summary": "App crash on invoice payment."},
         ],
+        "category_keywords": {"billing": ["invoice"], "technical": ["crashes"]},
+        "default_category": "general",
     })
 
     result = classify_email(text, config)
