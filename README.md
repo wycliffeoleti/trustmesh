@@ -49,6 +49,13 @@ The checked-in evaluation report is from a local execution: dataset `2026.1`, **
 
 ## Email classifier evaluation (offline, staged draft)
 
+**The problem.** Editing a prompt or its configuration for an LLM-shaped
+feature can silently change output quality — a single wording or keyword
+change can flip previously-correct outputs with no visible signal until
+someone notices downstream. Without an automated, repeatable check, that kind
+of regression ships unreviewed. This evaluator exists to make a prompt/config
+change's effect on classifier output diffable before merge, entirely offline.
+
 **Purpose.** A deterministic, fully offline regression check for the staged-draft
 customer-support email classifier (`trustmesh/email_classifier.py`). It loads the
 checked-in `v1` prompt config and the 16-case staged dataset, runs the async
@@ -93,6 +100,12 @@ degradation over time. That module is built and unit-tested, but this CLI does n
 yet read or write a persisted run-history store, so slow-drift detection is not
 wired into the local command's output — wiring a history store is explicit future
 scope, not implemented today.
+
+**Walkthrough.** A local, step-by-step demo script — run the evaluator, inspect
+the JSON/HTML report, edit a *temporary copy* of the prompt config to induce a
+regression, rerun, and confirm the alert payload stays in-memory/offline — is
+in [docs/email-classifier-eval-walkthrough.md](docs/email-classifier-eval-walkthrough.md).
+No recording or publication has been made from it.
 
 ## Security and governance
 
