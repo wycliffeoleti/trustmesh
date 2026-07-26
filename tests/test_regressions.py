@@ -115,3 +115,22 @@ def test_documented_eval_command_runs_from_repo_root() -> None:
     assert result.returncode == 0, result.stderr
     report = json.loads(result.stdout)
     assert report["passed"] == report["total"]
+
+
+def test_documented_email_classifier_eval_command_runs_from_repo_root(tmp_path: Path) -> None:
+    """`uv run python evals/run_email_classifier_eval.py`, exactly as README/Makefile/CI
+    invoke it, must succeed from the repo root and print a structured headline status.
+    """
+    result = subprocess.run(
+        [sys.executable, "evals/run_email_classifier_eval.py", "--output-dir", str(tmp_path)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    alert = json.loads(result.stdout)
+    assert alert["dataset_status"] == "staged_draft"
+    assert alert["headline_status"] in {"pass", "warn", "fail"}
+    assert (tmp_path / "report.json").exists()
+    assert (tmp_path / "report.html").exists()

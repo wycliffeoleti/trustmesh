@@ -1,0 +1,33 @@
+name: Email classifier evaluation
+
+on:
+  push:
+    paths:
+      - "prompts/email_classifier/**"
+      - "evals/email_classifier_staged/**"
+      - "evals/baselines/**"
+      - "trustmesh/email_classifier*.py"
+      - "evals/run_email_classifier_eval.py"
+      - ".github/workflows/email-classifier-eval.yml"
+  pull_request:
+    paths:
+      - "prompts/email_classifier/**"
+      - "evals/email_classifier_staged/**"
+      - "evals/baselines/**"
+      - "trustmesh/email_classifier*.py"
+      - "evals/run_email_classifier_eval.py"
+      - ".github/workflows/email-classifier-eval.yml"
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --group dev
+      - run: uv run python evals/run_email_classifier_eval.py --output-dir eval-artifacts/email_classifier
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: email-classifier-eval-report
+          path: eval-artifacts/email_classifier

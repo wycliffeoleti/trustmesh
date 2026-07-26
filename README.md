@@ -47,6 +47,53 @@ The domain (`Action`, `Decision`, `PolicyGateway`) is independent of FastAPI and
 
 The checked-in evaluation report is from a local execution: dataset `2026.1`, **4/4 passed (100%)**. Its cases cover safe completion, approval routing, destructive-action denial, and prompt-injection denial. See [eval report](docs/verification/eval-report.json) and [test output](docs/verification/tests.txt). Exact commands: `uv run pytest -q` and `uv run python evals/run_eval.py`.
 
+## Email classifier evaluation (offline, staged draft)
+
+**Purpose.** A deterministic, fully offline regression check for the staged-draft
+customer-support email classifier (`trustmesh/email_classifier.py`). It loads the
+checked-in `v1` prompt config and the 16-case staged dataset, runs the async
+evaluation engine, and compares category-match results against a checked-in baseline
+run. It makes no model/provider call, no network request, and requires no API key,
+webhook URL, or other secret/environment configuration — see
+`tests/test_email_classifier_eval_reporting_offline_guardrails.py`.
+
+**Local command:** `uv run python evals/run_email_classifier_eval.py` (or `make
+eval-email-classifier`). It prints a structured pass/warn/fail headline JSON to
+stdout and writes `report.json`, `report.html`, and `alert.json` to
+`--output-dir` (default `eval-artifacts/email_classifier/`, not checked in). The
+process exits nonzero **only** when the comparison status is `critical` — `ok` and
+`warning` both exit zero, so CI can surface a regression without blocking merges
+until that behavior is separately authorized.
+
+**Dataset/provenance warning.** `evals/email_classifier_staged/v1.json` is a
+**staged draft**: it was authored entirely by an AI assistant as synthetic seed
+data. It is **not golden**, not human-reviewed, not BASWE-scale (16 of the
+suggested 50-100 cases), and **not production evidence**. Every report and the HTML
+output carry this `staged_draft` status and the full provenance statement forward
+so a staged result can never be read as a golden or model-evaluated one.
+
+**Baseline change procedure.** The checked-in baseline,
+`evals/baselines/email_classifier_staged_v1.json`, is the last accepted deterministic
+run of the `v1` prompt against the `v1` staged dataset. It must never be
+silently overwritten by CI. To intentionally update it after a reviewed prompt or
+dataset change: regenerate it locally by running the evaluator against the new
+prompt/dataset, review the resulting diff (old vs. new category matches) by hand,
+and commit the updated baseline file in the same PR as the prompt/dataset change so
+the regression it causes (if any) is reviewed, not hidden.
+
+**Thresholds.** `RegressionThresholds` (`trustmesh/email_classifier_eval_comparison.py`)
+defaults to a **3 percentage-point warning** and an **8 percentage-point critical**
+decline in overall category pass rate, mirroring the BASWE guide's suggested
+defaults. These are ordinary configurable values, not hidden constants.
+
+**Why slow drift exists.** `trustmesh/email_classifier_eval_drift.py` implements a
+seven-run moving-average check as a pure function: several small declines can each
+stay under the 3pp per-run warning threshold while still adding up to meaningful
+degradation over time. That module is built and unit-tested, but this CLI does not
+yet read or write a persisted run-history store, so slow-drift detection is not
+wired into the local command's output — wiring a history store is explicit future
+scope, not implemented today.
+
 ## Security and governance
 
 Policy is reviewed YAML, default-deny, scoped by registered tool, and deterministic. Input is bounded at the API; obvious injection/secret-exfiltration markers are denied; sensitive strings are redacted before audit persistence. Approval records identify the reviewer and preserve both request and resolution events. See [threat model](docs/threat-model.md), [ADR](docs/adr-001.md), and [EU AI Act readiness mapping](docs/eu-ai-act.md).

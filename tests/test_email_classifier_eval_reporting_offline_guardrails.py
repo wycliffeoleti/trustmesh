@@ -9,6 +9,7 @@ _NEW_MODULES = [
     "email_classifier_eval_drift.py",
     "email_classifier_eval_report.py",
     "email_classifier_eval_alert.py",
+    "email_classifier_eval_cli.py",
 ]
 
 # Modules/attributes whose presence in actual code (not prose) would mean a module reaches
