@@ -1,0 +1,156 @@
+{
+  "schema_version": "1",
+  "dataset_status": "staged_draft",
+  "provenance": {
+    "authored_by": "assistant",
+    "reviewed_by": null,
+    "statement": "This staged draft dataset was authored entirely by an AI assistant (Claude) as synthetic seed data for the Phase-1 email classifier. It is not human-curated, not golden, not BASWE-scale, and not model-evaluated. It has not been reviewed by any human and must not be used as a golden dataset, benchmark, or production evaluation source until a named human reviewer completes review and explicitly promotes it."
+  },
+  "expansion_criterion": "This staged draft dataset must not be promoted or expanded toward the BASWE 50-100-case target until a named human reviewer has reviewed and approved all 16 draft cases and records the added human-curated cases.",
+  "cases": [
+    {
+      "id": "billing-001",
+      "input": "I was charged twice for my monthly subscription this billing cycle, please refund the extra charge.",
+      "expected_category": "billing",
+      "ideal_summary": "Customer was double-charged for their subscription and wants a refund.",
+      "expected_difficulty": "normal",
+      "notes": "Baseline unambiguous billing case with a clear refund request.",
+      "review_status": "draft"
+    },
+    {
+      "id": "billing-002",
+      "input": "Not sure if this is a refund thing or my plan renewing wrong, but something about what I paid this month looks off.",
+      "expected_category": "billing",
+      "ideal_summary": "Customer is unsure why their recent payment amount looks incorrect.",
+      "expected_difficulty": "ambiguous",
+      "notes": "Could plausibly read as billing or account; intended gold label is billing since the complaint is about a payment amount.",
+      "review_status": "draft"
+    },
+    {
+      "id": "billing-003",
+      "input": "invoice wrong, overcharged",
+      "expected_category": "billing",
+      "ideal_summary": "Customer says their invoice is wrong and they were overcharged.",
+      "expected_difficulty": "short",
+      "notes": "Very short, fragment-style input with no greeting or full sentence.",
+      "review_status": "draft"
+    },
+    {
+      "id": "billing-004",
+      "input": "i got billed twice for teh invocie this month, pls refnud me asap",
+      "expected_category": "billing",
+      "ideal_summary": "Customer was billed twice for an invoice and wants a prompt refund.",
+      "expected_difficulty": "typo",
+      "notes": "Contains multiple misspellings (teh, invocie, refnud) to test robustness to typos.",
+      "review_status": "draft"
+    },
+    {
+      "id": "technical-001",
+      "input": "The mobile app crashes every single time I try to upload a receipt photo.",
+      "expected_category": "technical",
+      "ideal_summary": "Customer reports the app crashing when uploading a receipt photo.",
+      "expected_difficulty": "normal",
+      "notes": "Baseline unambiguous technical bug report.",
+      "review_status": "draft"
+    },
+    {
+      "id": "technical-002",
+      "input": "La app se cierra sola cada vez que intento subir una foto, please can someone help me fix this?",
+      "expected_category": "technical",
+      "ideal_summary": "Customer reports the app closing itself when uploading a photo.",
+      "expected_difficulty": "mixed_language",
+      "notes": "Mixes Spanish and English in a single message to test mixed-language handling.",
+      "review_status": "draft"
+    },
+    {
+      "id": "technical-003",
+      "input": "Oh fantastic, another update that bricked the login screen. Really great work over there.",
+      "expected_category": "technical",
+      "ideal_summary": "Customer sarcastically reports that a recent update broke the login screen.",
+      "expected_difficulty": "sarcastic",
+      "notes": "Sarcastic tone praising the product while actually reporting a login-breaking bug.",
+      "review_status": "draft"
+    },
+    {
+      "id": "technical-004",
+      "input": "app won't open, just black screen",
+      "expected_category": "technical",
+      "ideal_summary": "Customer reports the app failing to open and showing a black screen.",
+      "expected_difficulty": "short",
+      "notes": "Very short, fragment-style bug report with no punctuation.",
+      "review_status": "draft"
+    },
+    {
+      "id": "account-001",
+      "input": "I can't log in to my account after resetting my password yesterday.",
+      "expected_category": "account",
+      "ideal_summary": "Customer is unable to log in after resetting their password.",
+      "expected_difficulty": "normal",
+      "notes": "Baseline unambiguous account-access case.",
+      "review_status": "draft"
+    },
+    {
+      "id": "account-002",
+      "input": "Something is wrong with my account, maybe it's locked, maybe it got deleted, I honestly can't tell.",
+      "expected_category": "account",
+      "ideal_summary": "Customer is unsure whether their account is locked or deleted.",
+      "expected_difficulty": "ambiguous",
+      "notes": "Customer expresses uncertainty about the exact nature of the account problem.",
+      "review_status": "draft"
+    },
+    {
+      "id": "account-003",
+      "input": "im lockde out of my acount and cant resset the passwrod, help pls",
+      "expected_category": "account",
+      "ideal_summary": "Customer is locked out of their account and cannot reset their password.",
+      "expected_difficulty": "typo",
+      "notes": "Contains multiple misspellings (lockde, acount, resset, passwrod) to test robustness to typos.",
+      "review_status": "draft"
+    },
+    {
+      "id": "account-004",
+      "input": "Wonderful, I reset my password like you asked and now I'm locked out entirely. Great system you have here.",
+      "expected_category": "account",
+      "ideal_summary": "Customer sarcastically reports being locked out of their account after a password reset.",
+      "expected_difficulty": "sarcastic",
+      "notes": "Sarcastic praise masking a genuine account-lockout complaint.",
+      "review_status": "draft"
+    },
+    {
+      "id": "general-001",
+      "input": "What are your customer support hours on weekends?",
+      "expected_category": "general",
+      "ideal_summary": "Customer is asking about weekend support hours.",
+      "expected_difficulty": "normal",
+      "notes": "Baseline unambiguous general inquiry.",
+      "review_status": "draft"
+    },
+    {
+      "id": "general-002",
+      "input": "support hours?",
+      "expected_category": "general",
+      "ideal_summary": "Customer is asking about support hours.",
+      "expected_difficulty": "short",
+      "notes": "Extremely short two-word query with no context.",
+      "review_status": "draft"
+    },
+    {
+      "id": "general-003",
+      "input": "Bonjour, quelle est votre time zone for support, s'il vous plait?",
+      "expected_category": "general",
+      "ideal_summary": "Customer is asking which time zone support operates in.",
+      "expected_difficulty": "mixed_language",
+      "notes": "Mixes French and English in a single message to test mixed-language handling.",
+      "review_status": "draft"
+    },
+    {
+      "id": "general-004",
+      "input": "Just wondering about a few things regarding your service in general, nothing urgent really.",
+      "expected_category": "general",
+      "ideal_summary": "Customer has a few unspecified general questions about the service.",
+      "expected_difficulty": "ambiguous",
+      "notes": "Deliberately vague inquiry with no concrete billing, technical, or account signal.",
+      "review_status": "draft"
+    }
+  ]
+}
